@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    networks:
+      - backend
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: user_data
+      POSTGRES_PORT: 5432
+      POSTGRES_SSL_MODE: disable
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_data" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: migrate/migrate
+    networks:
+      - backend
+    #PATH TO MIGRATIONS
+    volumes:
+      - ./migrations:/migrations
+    command: [ "-path", "./migrations", "-database",  "postgres://postgres:pass@db:5432/user_data?sslmode=disable", "up" ]
+    links:
+      - db
+
+  main-hash-service:
+    build:
+      dockerfile: Dockerfile
+    container_name: main-service
+    env_file:
+      - .env
+    networks:
+      - backend
+    ports:
+      - "8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  unhash-service:
+    image: unhash-service
+    container_name: unhash-service-v1
+    env_file:
+      - .env
+    networks:
+      - backend
+    ports:
+      - "8080:8080"
+
+  minio:
+    image: minio/minio:latest
+    command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - backend
+    depends_on:
+      - db
+    environment:
+      MINIO_ROOT_USER: adminadmin
+      MINIO_ROOT_PASSWORD: passwordpassword
+      MINIO_SERVER_URL: "http://localhost:9000"
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9001"
+    volumes:
+      - ./.minio:/root/.minio
+
+
+volumes:
+  postgres_db:
+
+
+networks:
+  backend:
+    driver: bridge
