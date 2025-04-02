@@ -31,7 +31,6 @@ type App struct {
 
 func NewDB(lg *logger.Logger, cfg *entity.Config) *pgxpool.Pool {
 	dbCfg := cfg.GetConfigForDB()
-	lg.Logger.Info().Msgf("Database config: %+v", dbCfg)
 	err := postgres.ParseConfig(&dbCfg)
 	if err != nil {
 		lg.Logger.Fatal().Msgf("could not parse postgres config %v: ", err)
@@ -41,8 +40,6 @@ func NewDB(lg *logger.Logger, cfg *entity.Config) *pgxpool.Pool {
 	if err != nil {
 		lg.Logger.Fatal().Msgf("could not setup pgx %v: ", err)
 	}
-	lg.Logger.Info().Msgf("Database pool stats: %+v", pgxPool.Stat())
-
 	return pgxPool
 }
 
@@ -68,7 +65,6 @@ func New(cfg *entity.Config) *App {
 	unhasherRepo := unhasher.New(lg, cfg.Endpoint)
 	fetchRepo := fetchdata.New(lg, db)
 	s3repo := s3repoImpl.New(lg, minio)
-	lg.Logger.Debug().Msgf("fetchRepo: %+v", fetchRepo)
 
 	return &App{
 		Logger:     *lg,

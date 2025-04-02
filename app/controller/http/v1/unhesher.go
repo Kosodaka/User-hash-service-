@@ -40,7 +40,6 @@ func NewHasherRouter(handler *gin.RouterGroup, params *HesherRouterParams) {
 }
 
 func (r *HasherRouter) UnhashFromQuery(ctx *gin.Context) {
-	r.logger.Info("call check hash")
 	var query QueryRequest
 	var stmt []postgres.QueryStatement
 	err := ctx.ShouldBindJSON(&query)
@@ -86,7 +85,6 @@ func (r *HasherRouter) UnhashFromFile(ctx *gin.Context) {
 }
 
 func (r *HasherRouter) UploadFile(ctx *gin.Context) {
-	r.logger.Info("call check hash")
 
 	file, err := ctx.FormFile("file")
 	if err != nil {
@@ -113,7 +111,7 @@ func (r *HasherRouter) UploadFile(ctx *gin.Context) {
 }
 
 func (r *HasherRouter) GetHashedData(ctx *gin.Context) {
-	r.logger.Info("call check hash")
+
 	var query GetHashRequest
 	err := ctx.ShouldBindJSON(&query)
 	if err != nil {
