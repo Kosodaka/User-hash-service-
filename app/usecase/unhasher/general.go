@@ -106,6 +106,10 @@ func (uc *UnhasherUCImpl) UnhashFromQuery(ctx context.Context, fields []string, 
 
 	go func() {
 		batches := butcher.BatchUsers(fetchedData, butchSize)
+		if len(batches) == 0 {
+			uc.lg.Logger.Error().Msgf("no data fetched")
+			return
+		}
 		for _, batch := range batches {
 			select {
 			case dataChan <- batch:
@@ -326,6 +330,10 @@ func (uc *UnhasherUCImpl) UnhashFromFile(ctx context.Context, bucket, objectName
 
 	go func() {
 		batches := butcher.BatchUsers(fetchedData, butchSize)
+		if len(batches) == 0 {
+			uc.lg.Logger.Error().Msgf("no data fetched")
+			return
+		}
 		for _, batch := range batches {
 			select {
 			case dataChan <- batch:

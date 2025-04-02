@@ -5,7 +5,7 @@ import "mainHashService/app/repo/postgres"
 // Разбивает данные на батчи по 200 элементов.
 func BatchUsers(users []postgres.UserData, batchSize int) [][]postgres.UserData {
 	if batchSize <= 0 {
-		panic("batch size must be positive")
+		return [][]postgres.UserData{}
 	}
 
 	var batches [][]postgres.UserData
