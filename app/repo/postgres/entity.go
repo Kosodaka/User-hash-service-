@@ -3,12 +3,19 @@ package postgres
 import "time"
 
 type UserData struct {
-	ID       int64
-	Name     string
-	Surname  string
-	Email    string
-	UserHash UserHash
-	CreateAt time.Time
+	ID       int64     `db:"user_id"`
+	Name     string    `db:"user_name"`
+	Surname  string    `db:"surname"`
+	Email    string    `db:"email"`
+	Phone    string    `db:"hashed_phone"`
+	Salt     int64     `db:"salt"`
+	Domain   int64     `db:"domain_number"`
+	CreateAt time.Time `db:"created_at"`
+}
+
+type QueryStatement struct {
+	Clause string
+	Value  interface{}
 }
 
 type HashedData struct {
@@ -23,7 +30,7 @@ type HashedData struct {
 }
 type UserHash struct {
 	Hash   Hash
-	Domain int64
+	Domain int64 `db:"domain_number"`
 }
 
 type UnhashRequest struct {
@@ -40,9 +47,9 @@ type HashFromUnhashResponse struct {
 }
 
 type Hash struct {
-	UserID      int64  `json:"user_id"`
-	PhoneNumber string `json:"phone_number"`
-	Salt        int64  `json:"salt"`
+	UserID      int64  `json:"user_id" db:"user_id"`
+	PhoneNumber string `json:"phone_number" db:"hashed_phone"`
+	Salt        int64  `json:"salt" db:"salt"`
 }
 
 type Unhashdata struct {

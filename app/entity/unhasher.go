@@ -27,3 +27,8 @@ type UnhashedNumber struct {
 	PhoneNumber string `json:"phone_number"`
 	Hash        string `json:"phone_hash"`
 }
+
+type QueryStmt struct {
+	Clause string
+	Value  interface{}
+}

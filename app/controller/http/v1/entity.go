@@ -7,7 +7,12 @@ type CheckerRequest struct {
 	Domain int64         `json:"domain"`
 }
 
-type UnhasherRequest struct {
+type QueryRequest struct {
+	Fields     []string           `json:"fields"`
+	Statements []entity.QueryStmt `json:"statements"`
+}
+
+type GetHashRequest struct {
 	Query string `json:"query"`
 }
 

@@ -7,7 +7,7 @@ type UserHash = postgres.UserHash
 type Hash = postgres.Hash
 type Unhashdata = postgres.Unhashdata
 type HashedData = postgres.HashedData
-
+type QueryStmt = postgres.QueryStatement
 type ResultStruct struct {
 	UserID     int64  `json:"user_id"`
 	Name       string `json:"name"`

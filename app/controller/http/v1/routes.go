@@ -2,8 +2,8 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	unhasherUc "mainHashService/app/usecase"
 	checkerUc "mainHashService/app/usecase/checker"
+	unhasherUc "mainHashService/app/usecase/unhasher"
 	"mainHashService/pkg/logger"
 )
 

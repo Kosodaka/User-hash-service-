@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"mainHashService/app/entity"
-	"mainHashService/app/usecase"
 	"mainHashService/app/usecase/utills/butcher"
 	utills "mainHashService/app/usecase/utills/mapper"
 	writer "mainHashService/app/usecase/utills/writer"
@@ -45,7 +44,7 @@ func New(lg *logger.Logger, unhasherRepo UnhasherRepo, fetchRepo FetchRepo, s3Re
 	}
 }
 
-var _ usecase.UnhasherUC = (*UnhasherUCImpl)(nil)
+var _ UnhasherUC = (*UnhasherUCImpl)(nil)
 
 // UnhashWorker - пул воркеров для расшифровки данных.
 func (uc *UnhasherUCImpl) unhashWorker(ctx context.Context, wg *sync.WaitGroup, dataChan <-chan []UserData, resultChan chan<- entity.UnhashedData, errChan chan<- error) {
@@ -71,7 +70,13 @@ func (uc *UnhasherUCImpl) unhashWorker(ctx context.Context, wg *sync.WaitGroup, 
 // делит данные на батчи по 200 элементов и через пул воркеров отправляет двнные на расшифровку,
 // полученные данные записывает в файл, затем полученный файл архивирует паролит и кладет в минио.
 // Возвращает название бакета и url для скачивания.
-func (uc *UnhasherUCImpl) UnhashFromQuery(ctx context.Context, query string) (string, string, error) {
+func (uc *UnhasherUCImpl) UnhashFromQuery(ctx context.Context, fields []string, filters []QueryStmt) (string, string, error) {
+
+	query, args, err := uc.FetchRepo.QueryBuilder(fields, filters)
+	if err != nil {
+		return "", "", err
+	}
+
 	if ok, err := uc.processingQuery(query); !ok {
 		return "", "", err
 	}
@@ -83,7 +88,7 @@ func (uc *UnhasherUCImpl) UnhashFromQuery(ctx context.Context, query string) (st
 	}
 	defer os.RemoveAll(tempDir)
 
-	fetchedData, err := uc.FetchRepo.GetHashFromQuery(ctx, query)
+	fetchedData, err := uc.FetchRepo.GetHashFromQuery(ctx, query, args)
 	if err != nil {
 		uc.lg.Logger.Error().Msgf("failed to get hash from query: %v", err)
 		return "", "", err
@@ -161,7 +166,6 @@ func (uc *UnhasherUCImpl) runWriter(unhashedBatches []entity.UnhashedData, userD
 	writer := &uc.FileWriter
 	writer.Dir = tempDir
 
-	// Создаем каналы для параллельной записи
 	dataChan := make(chan ResultStruct, numWorkers)
 	errChan := make(chan error, 1)
 	var wg sync.WaitGroup
@@ -273,11 +277,11 @@ func (uc *UnhasherUCImpl) getUnhashedData(ctx context.Context, data []UserData) 
 	for _, d := range data {
 		hashSalt = append(hashSalt, Hash{
 			UserID:      d.ID,
-			PhoneNumber: d.UserHash.Hash.PhoneNumber,
-			Salt:        d.UserHash.Hash.Salt,
+			PhoneNumber: d.Phone,
+			Salt:        d.Salt,
 		})
 	}
-	return uc.UnhasherRepo.UnhashData(ctx, &Unhashdata{HashSalt: hashSalt, Domain: data[0].UserHash.Domain})
+	return uc.UnhasherRepo.UnhashData(ctx, &Unhashdata{HashSalt: hashSalt, Domain: data[0].Domain})
 }
 
 // Вспомогательный метод для создания временной директории.

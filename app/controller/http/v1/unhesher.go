@@ -2,7 +2,8 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	unhasherUc "mainHashService/app/usecase"
+	"mainHashService/app/repo/postgres"
+	unhasherUc "mainHashService/app/usecase/unhasher"
 	"mainHashService/pkg/logger"
 	"net/http"
 )
@@ -40,14 +41,23 @@ func NewHasherRouter(handler *gin.RouterGroup, params *HesherRouterParams) {
 
 func (r *HasherRouter) UnhashFromQuery(ctx *gin.Context) {
 	r.logger.Info("call check hash")
-	var query UnhasherRequest
+	var query QueryRequest
+	var stmt []postgres.QueryStatement
 	err := ctx.ShouldBindJSON(&query)
 	if err != nil {
 		r.logger.Error(err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	url, bucketName, err := r.unhasher.UnhashFromQuery(ctx, query.Query)
+
+	for _, s := range query.Statements {
+		stmt = append(stmt, postgres.QueryStatement{
+			Clause: s.Clause,
+			Value:  s.Value,
+		})
+	}
+	r.logger.Logger.Debug().Msgf("stmt: %v", stmt)
+	url, bucketName, err := r.unhasher.UnhashFromQuery(ctx, query.Fields, stmt)
 	if err != nil {
 		r.logger.Error(err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -104,7 +114,7 @@ func (r *HasherRouter) UploadFile(ctx *gin.Context) {
 
 func (r *HasherRouter) GetHashedData(ctx *gin.Context) {
 	r.logger.Info("call check hash")
-	var query UnhasherRequest
+	var query GetHashRequest
 	err := ctx.ShouldBindJSON(&query)
 	if err != nil {
 		r.logger.Error(err.Error())
