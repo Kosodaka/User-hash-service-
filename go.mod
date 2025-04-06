@@ -22,6 +22,7 @@ require (
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gin-contrib/pprof v1.5.2 // indirect
 	github.com/gin-contrib/sse v1.0.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
